@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Debugging Elixir</title>
+        <meta name="viewport" content="width=device-width">
+
+        <!-- syntax highlighting CSS -->
+        <link rel="stylesheet" href="/css/syntax.css">
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="/css/main.css">
+
+    </head>
+    <body>
+
+        <div class="site">
+          <div class="header">
+            <h1 class="title"><a href="/">Josh is Qhool</a></h1>
+            <a class="extra" href="/">home</a>
+          </div>
+
+          <h2>Debugging Elixir</h2>
+<p class="meta">06 Feb 2014</p>
+
+<div class="post">
+<p>Erlang has a graphical debugger, which you can use to step through source code, set breakpoints, etc.  You can start the debugger from the shell, and select a source file to debug from the menu, or (as shown), by calling the <code>int</code> module (the debugger&#39;s code interpreter http://www.erlang.org/doc/man/int.html)</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="mi">1</span><span class="o">&gt;</span> <span class="nn">debugger</span><span class="p">:</span><span class="nf">start</span><span class="p">().</span>
+<span class="p">{</span><span class="n">ok</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">39</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">}</span>
+<span class="mi">2</span><span class="o">&gt;</span> <span class="nn">int</span><span class="p">:</span><span class="nf">i</span><span class="p">(</span><span class="s">&quot;./src/mymodule.erl&quot;</span><span class="p">).</span>
+<span class="p">{</span><span class="n">module</span><span class="p">,</span><span class="n">mymodule</span><span class="p">}</span>
+</code></pre></div>
+
+<p>Now lets try it with elixir: (Note single-quote erlang-style strings)</p>
+
+<div class="highlight"><pre><code class="elixir"><span class="no">Interactive</span> <span class="no">Elixir</span> <span class="p">(</span><span class="m">0.12</span><span class="o">.</span><span class="m">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">press</span> <span class="no">Ctrl</span><span class="o">+</span><span class="no">C</span> <span class="n">to</span> <span class="k">exit</span> <span class="p">(</span><span class="n">type</span> <span class="n">h</span><span class="p">()</span> <span class="no">ENTER</span> <span class="n">for</span> <span class="n">help</span><span class="p">)</span>
+<span class="n">iex</span><span class="p">(</span><span class="m">1</span><span class="p">)</span><span class="o">&gt;</span> <span class="ss">:debugger</span><span class="o">.</span><span class="n">start</span><span class="p">()</span>
+<span class="p">{</span><span class="ss">:ok</span><span class="p">,</span> <span class="c1">#PID&lt;0.48.0&gt;}</span>
+<span class="n">iex</span><span class="p">(</span><span class="m">2</span><span class="p">)</span><span class="o">&gt;</span> <span class="ss">:int</span><span class="o">.</span><span class="n">i</span><span class="p">(</span><span class="s1">&#39;./lib/mymodule.ex&#39;</span><span class="p">)</span>
+<span class="o">**</span> <span class="no">Invalid</span> <span class="n">beam</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">no</span> <span class="n">abstract</span> <span class="ss">code:</span> <span class="s2">&quot;./lib/mymodule.ex&quot;</span>
+<span class="ss">:error</span>
+</code></pre></div>
+
+<p>Same results if we try loading the <code>.beam</code> file instead:</p>
+
+<div class="highlight"><pre><code class="elixir"><span class="n">iex</span><span class="p">(</span><span class="m">4</span><span class="p">)</span><span class="o">&gt;</span> <span class="ss">:int</span><span class="o">.</span><span class="n">i</span><span class="p">(</span><span class="s1">&#39;./ebin/Elixir.Qhool.MyModule.beam&#39;</span><span class="p">)</span>
+<span class="o">**</span> <span class="no">Invalid</span> <span class="n">beam</span> <span class="n">file</span> <span class="ow">or</span> <span class="n">no</span> <span class="n">abstract</span> <span class="ss">code:</span> <span class="s2">&quot;./ebin/Elixir.Qhool.MyModule.beam&quot;</span>
+<span class="ss">:error</span>
+</code></pre></div>
+
+<p>Looking at <code>int.erl</code> in the otp source (https://github.com/erlang/otp), we see:</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="nf">i</span><span class="p">(</span><span class="nv">AbsMods</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">i2</span><span class="p">(</span><span class="nv">AbsMods</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">ok</span><span class="p">).</span>
+</code></pre></div>
+
+<p>which leads us to:</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="nf">i2</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">,</span> <span class="nv">Dist</span><span class="p">,</span> <span class="p">_</span><span class="nv">Acc</span><span class="p">)</span> <span class="k">when</span> <span class="nb">is_atom</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">);</span> <span class="nb">is_list</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">);</span> <span class="nb">is_tuple</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="n">int_mod</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">,</span> <span class="nv">Dist</span><span class="p">).</span>
+</code></pre></div>
+
+<p>which goes to:</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="nf">int_mod</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">,</span> <span class="nv">Dist</span><span class="p">)</span> <span class="k">when</span> <span class="nb">is_atom</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">);</span> <span class="nb">is_list</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">)</span> <span class="o">-&gt;</span>
+    <span class="k">case</span> <span class="n">check</span><span class="p">(</span><span class="nv">AbsMod</span><span class="p">)</span> <span class="k">of</span>
+</code></pre></div>
+
+<p>Eventually, this winds up loading the source of the module, and attempting to parse it, which fails, because it&#39;s elixir.  If you pass the module name instead, it fails when it looks for <code>src/Elixir.Qhool.MyModule.erl</code>. (offending code is in <code>check_file/1</code> and <code>find_src/1</code>, respectively).</p>
+
+<p>Going back to <code>int_mod/2</code>, there&#39;s another clause:</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="nf">int_mod</span><span class="p">({</span><span class="nv">Mod</span><span class="p">,</span> <span class="nv">Src</span><span class="p">,</span> <span class="nv">Beam</span><span class="p">,</span> <span class="nv">BeamBin</span><span class="p">},</span> <span class="nv">Dist</span><span class="p">)</span>
+  <span class="k">when</span> <span class="nb">is_atom</span><span class="p">(</span><span class="nv">Mod</span><span class="p">),</span> <span class="nb">is_list</span><span class="p">(</span><span class="nv">Src</span><span class="p">),</span> <span class="nb">is_list</span><span class="p">(</span><span class="nv">Beam</span><span class="p">),</span> <span class="nb">is_binary</span><span class="p">(</span><span class="nv">BeamBin</span><span class="p">)</span> <span class="o">-&gt;</span>
+</code></pre></div>
+
+<p>Since the first argument to <code>i/1</code> passes through unchanged to int_mod, we can call it with this 4-tuple directly.  <code>Mod</code> is the module name, <code>Src</code> and <code>Beam</code> are just the filenames, and <code>BeamBin</code> is a binary (aka elixir string) with the contents of the .beam -- all we need to do is load the beam file contents into a variable, and construct the tuple:</p>
+
+<div class="highlight"><pre><code class="elixir"><span class="n">iex</span><span class="p">(</span><span class="m">9</span><span class="p">)</span><span class="o">&gt;</span> <span class="p">{</span><span class="ss">:ok</span><span class="p">,</span><span class="n">beam_bin</span><span class="p">}</span> <span class="o">=</span> <span class="no">File</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="s2">&quot;./ebin/Elixir.Qhool.MyModule.beam&quot;</span><span class="p">)</span>
+<span class="p">{</span><span class="ss">:ok</span><span class="p">,</span>
+ <span class="o">&lt;&lt;</span><span class="m">70</span><span class="p">,</span> <span class="m">79</span><span class="p">,</span> <span class="m">82</span><span class="p">,</span> <span class="m">49</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">7</span><span class="p">,</span> <span class="m">84</span><span class="p">,</span> <span class="m">66</span><span class="p">,</span> <span class="m">69</span><span class="p">,</span> <span class="m">65</span><span class="p">,</span> <span class="m">77</span><span class="p">,</span> <span class="m">65</span><span class="p">,</span> <span class="m">116</span><span class="p">,</span> <span class="m">111</span><span class="p">,</span> <span class="m">109</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">113</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">0</span><span class="p">,</span> <span class="m">11</span><span class="p">,</span> <span class="m">21</span><span class="p">,</span> <span class="m">69</span><span class="p">,</span> <span class="m">108</span><span class="p">,</span> <span class="m">105</span><span class="p">,</span> <span class="m">120</span><span class="p">,</span> <span class="m">105</span><span class="p">,</span> <span class="m">114</span><span class="p">,</span> <span class="m">46</span><span class="p">,</span> <span class="m">81</span><span class="p">,</span> <span class="m">104</span><span class="p">,</span> <span class="m">111</span><span class="p">,</span> <span class="m">111</span><span class="p">,</span> <span class="m">108</span><span class="p">,</span> <span class="m">46</span><span class="p">,</span> <span class="m">77</span><span class="p">,</span> <span class="m">121</span><span class="p">,</span> <span class="m">77</span><span class="p">,</span> <span class="m">111</span><span class="p">,</span> <span class="m">100</span><span class="p">,</span> <span class="m">117</span><span class="p">,</span> <span class="m">108</span><span class="p">,</span> <span class="m">101</span><span class="p">,</span> <span class="m">8</span><span class="p">,</span> <span class="m">95</span><span class="p">,</span> <span class="m">95</span><span class="p">,</span> <span class="m">105</span><span class="p">,</span> <span class="o">...&gt;&gt;</span><span class="p">}</span>
+<span class="n">iex</span><span class="p">(</span><span class="m">10</span><span class="p">)</span><span class="o">&gt;</span> <span class="ss">:int</span><span class="o">.</span><span class="n">i</span><span class="p">({</span><span class="no">Qhool</span><span class="o">.</span><span class="no">MyModule</span><span class="p">,</span><span class="s1">&#39;./lib/mymodule.ex&#39;,&#39;./ebin/Elixir.Qhool.MyModule.beam&#39;</span><span class="p">,</span><span class="n">beam_bin</span><span class="p">})</span>
+<span class="p">{</span><span class="ss">:module</span><span class="p">,</span> <span class="no">Qhool</span><span class="o">.</span><span class="no">MyModule</span><span class="p">}</span>
+</code></pre></div>
+
+<p>And now the module shows up in the debugger.  All the usual stuff will now work; you can set breakpoints, step through execution, and so forth.</p>
+
+<p>Here&#39;s the same procedure in erlang:</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="nv">Eshell</span> <span class="nv">V5</span><span class="p">.</span><span class="mi">10</span><span class="p">.</span><span class="mi">3</span>  <span class="p">(</span><span class="n">abort</span> <span class="n">with</span> <span class="err">^</span><span class="nv">G</span><span class="p">)</span>
+<span class="mi">1</span><span class="o">&gt;</span> <span class="nn">debugger</span><span class="p">:</span><span class="nf">start</span><span class="p">().</span>
+<span class="p">{</span><span class="n">ok</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">39</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">}</span>
+<span class="mi">2</span><span class="o">&gt;</span> <span class="nv">Beam</span> <span class="o">=</span> <span class="s">&quot;./ebin/Elixir.Qhool.MyModule.beam&quot;</span><span class="p">.</span>
+<span class="s">&quot;./ebin/Elixir.Qhool.MyModule.beam&quot;</span>
+<span class="mi">3</span><span class="o">&gt;</span> <span class="p">{</span><span class="n">ok</span><span class="p">,</span><span class="nv">BeamBin</span><span class="p">}</span> <span class="o">=</span> <span class="nn">file</span><span class="p">:</span><span class="nf">read_file</span><span class="p">(</span><span class="nv">Beam</span><span class="p">).</span>
+<span class="p">{</span><span class="n">ok</span><span class="p">,</span><span class="o">&lt;&lt;</span><span class="mi">70</span><span class="p">,</span><span class="mi">79</span><span class="p">,</span><span class="mi">82</span><span class="p">,</span><span class="mi">49</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">7</span><span class="p">,</span><span class="mi">84</span><span class="p">,</span><span class="mi">66</span><span class="p">,</span><span class="mi">69</span><span class="p">,</span><span class="mi">65</span><span class="p">,</span><span class="mi">77</span><span class="p">,</span><span class="mi">65</span><span class="p">,</span><span class="mi">116</span><span class="p">,</span><span class="mi">111</span><span class="p">,</span><span class="mi">109</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span>
+      <span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">113</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">11</span><span class="p">,</span><span class="mi">21</span><span class="p">,</span><span class="mi">69</span><span class="p">,</span><span class="mi">108</span><span class="p">,...</span><span class="o">&gt;&gt;</span><span class="p">}</span>
+<span class="mi">4</span><span class="o">&gt;</span> <span class="nn">int</span><span class="p">:</span><span class="nf">i</span><span class="p">({</span><span class="n">&#39;Elixir.Qhool.MyModule&#39;</span><span class="p">,</span><span class="s">&quot;./lib/mymodule.ex&quot;</span><span class="p">,</span><span class="nv">Beam</span><span class="p">,</span><span class="nv">BeamBin</span><span class="p">}).</span>
+<span class="p">{</span><span class="n">module</span><span class="p">,</span><span class="n">&#39;Elixir.Qhool.MyModule&#39;</span><span class="p">}</span>
+</code></pre></div>
+
+<p>One interesting thing to note, in the elixir version, you see the bare module name <code>Qhool.MyModule</code> in the input and output to &#39;:int.i()&#39;; elixir is really representing this internally with the atom <code>&#39;Elixir.Qhool.MyModule&#39;</code> and this is what &#39;int:i/1&#39; receives, and returns in both versions:</p>
+
+<div class="highlight"><pre><code class="elixir"><span class="n">iex</span><span class="p">(</span><span class="m">1</span><span class="p">)</span><span class="o">&gt;</span> <span class="ss">:io</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;~p~n&#39;</span><span class="p">,[</span><span class="no">Qhool</span><span class="o">.</span><span class="no">MyModule</span><span class="p">])</span>
+<span class="s1">&#39;Elixir.Qhool.MyModule&#39;</span>
+<span class="ss">:ok</span>
+</code></pre></div>
+
+</div>
+
+
+          <div class="footer">
+            <div class="contact">
+              <p>
+                Your Name<br />
+                What You Are<br />
+                you@example.com
+              </p>
+            </div>
+            <div class="contact">
+              <p>
+                <a href="https://github.com/yourusername">github.com/yourusername</a><br />
+                <a href="https://twitter.com/yourusername">twitter.com/yourusername</a><br />
+              </p>
+            </div>
+          </div>
+        </div>
+
+    </body>
+</html>
