@@ -4,7 +4,7 @@ title:  "Introducing Quaff [...the Elixir]"
 date:   2014-02-10 01:37:00
 categories: elixir
 ---
-Quaff can run your Elixir code in the graphical debugger, and import constants from your `.hrl` files.
+[Quaff](https://github.com/qhool/quaff) can run your Elixir code in the graphical debugger, and import constants from your `.hrl` files.
 
 
 Quaff, available from github: [https://github.com/qhool/quaff](https://github.com/qhool/quaff), is a set of tools for integrating Elixir into erlang applications (or vice versa).  So far it has Quaff.Constants, which lets you import constant `-define`s from erlang `.hrl`s, and Quaff.Debug, a helper for the erlang graphical debugger (it implements the method I discussed in my [previous post](/elixir/2014/02/06/elixir-debug.html)).
