@@ -25,7 +25,9 @@
 <p class="meta">06 Feb 2014</p>
 
 <div class="post">
-<p>Erlang has a graphical debugger, which you can use to step through source code, set breakpoints, etc.  You can start the debugger from the shell, and select a source file to debug from the menu, or (as shown), by calling the <code>int</code> module (the debugger&#39;s code interpreter http://www.erlang.org/doc/man/int.html)</p>
+<p>Erlang provides a graphical debugger with all the things you&#39;d expect -- breakpoints, single-step execution, variable inspection, etc.  It doesn&#39;t work with Elixir code, however.  Herein we&#39;ll explore what goes wrong and how to get it working.</p>
+
+<p>You can start the debugger from the shell, and select a source file to debug from the menu, or (as shown), by calling the <a href="http://www.erlang.org/doc/man/int.html"><code>int</code> module</a> (the debugger&#39;s code interpreter)</p>
 
 <div class="highlight"><pre><code class="erlang"><span class="mi">1</span><span class="o">&gt;</span> <span class="nn">debugger</span><span class="p">:</span><span class="nf">start</span><span class="p">().</span>
 <span class="p">{</span><span class="n">ok</span><span class="p">,</span><span class="o">&lt;</span><span class="mi">0</span><span class="p">.</span><span class="mi">39</span><span class="p">.</span><span class="mi">0</span><span class="o">&gt;</span><span class="p">}</span>
@@ -50,7 +52,7 @@
 <span class="ss">:error</span>
 </code></pre></div>
 
-<p>Looking at <code>int.erl</code> in the otp source (https://github.com/erlang/otp), we see:</p>
+<p>Looking at <a href="https://github.com/erlang/otp/blob/maint/lib/debugger/src/int.erl"><code>int.erl</code></a> in the <a href="https://github.com/erlang/otp">otp source</a>, we see:</p>
 
 <div class="highlight"><pre><code class="erlang"><span class="nf">i</span><span class="p">(</span><span class="nv">AbsMods</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">i2</span><span class="p">(</span><span class="nv">AbsMods</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">ok</span><span class="p">).</span>
 </code></pre></div>
@@ -113,15 +115,16 @@
           <div class="footer">
             <div class="contact">
               <p>
-                Your Name<br />
-                What You Are<br />
-                you@example.com
+                Josh Burroughs<br />
+                <a href="https://github.com/qhool">github.com/qhool</a><br />
               </p>
             </div>
             <div class="contact">
               <p>
-                <a href="https://github.com/yourusername">github.com/yourusername</a><br />
-                <a href="https://twitter.com/yourusername">twitter.com/yourusername</a><br />
+                
+<div class="highlight"><pre><code class="haskell"><span class="nf">foldl1</span> <span class="p">(</span><span class="o">++</span><span class="p">)</span> <span class="p">[</span> <span class="n">a</span><span class="o">++</span><span class="n">b</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="ow">&lt;-</span> <span class="p">(</span><span class="n">zip</span> <span class="p">[</span><span class="s">&quot;josh&quot;</span><span class="p">,</span><span class="s">&quot;qhool&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">]</span> <span class="p">[</span><span class="s">&quot;@&quot;</span><span class="p">,</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;com&quot;</span><span class="p">])</span> <span class="p">]</span>
+</code></pre></div>
+
               </p>
             </div>
           </div>
