@@ -4,7 +4,10 @@ title:  "Debugging Elixir"
 date:   2014-02-06 21:26:00
 categories: elixir
 ---
-Erlang has a graphical debugger, which you can use to step through source code, set breakpoints, etc.  You can start the debugger from the shell, and select a source file to debug from the menu, or (as shown), by calling the `int` module (the debugger's code interpreter http://www.erlang.org/doc/man/int.html)
+Erlang provides a graphical debugger with all the things you'd expect -- breakpoints, single-step execution, variable inspection, etc.  It doesn't work with Elixir code, however.  Herein we'll explore what goes wrong and how to get it working.
+
+
+You can start the debugger from the shell, and select a source file to debug from the menu, or (as shown), by calling the [`int` module](http://www.erlang.org/doc/man/int.html) (the debugger's code interpreter)
 
 {% highlight erlang %}
 1> debugger:start().
@@ -32,7 +35,7 @@ iex(4)> :int.i('./ebin/Elixir.Qhool.MyModule.beam')
 :error
 {% endhighlight %}
 
-Looking at `int.erl` in the otp source (https://github.com/erlang/otp), we see:
+Looking at [`int.erl`](https://github.com/erlang/otp/blob/maint/lib/debugger/src/int.erl) in the [otp source](https://github.com/erlang/otp), we see:
 {% highlight erlang %}
 i(AbsMods) -> i2(AbsMods, local, ok).
 {% endhighlight %}
