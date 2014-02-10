@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+        <title>Introducing Quaff [...the Elixir]</title>
+        <meta name="viewport" content="width=device-width">
+
+        <!-- syntax highlighting CSS -->
+        <link rel="stylesheet" href="/css/syntax.css">
+
+        <!-- Custom CSS -->
+        <link rel="stylesheet" href="/css/main.css">
+
+    </head>
+    <body>
+
+        <div class="site">
+          <div class="header">
+            <h1 class="title"><a href="/">Josh is Qhool</a></h1>
+            <a class="extra" href="/">home</a>
+          </div>
+
+          <h2>Introducing Quaff [...the Elixir]</h2>
+<p class="meta">10 Feb 2014</p>
+
+<div class="post">
+<p>Quaff can run your Elixir code in the graphical debugger, and import constants from your <code>.hrl</code> files.</p>
+
+<p>Quaff, available from github: <a href="https://github.com/qhool/quaff">https://github.com/qhool/quaff</a>, is a set of tools for integrating Elixir into erlang applications (or vice versa).  So far it has Quaff.Constants, which lets you import constant <code>-define</code>s from erlang <code>.hrl</code>s, and Quaff.Debug, a helper for the erlang graphical debugger (it implements the method I discussed in my <a href="/elixir/2014/02/06/elixir-debug.html">previous post</a>).</p>
+
+<p>Everything from here on in is reproduced from the Quaff readme, so feel free to hop on <a href="https://github.com/qhool/quaff">over there</a> at any time.</p>
+
+<h2>Quaff.Constants</h2>
+
+<p>This module parses erlang header files, and imports any constants as <code>@</code> attributes. A constant means a <code>-define</code> macro which evaluates to a constant term, and takes no arguments (though it may use macros which accept arguments).  Constants whose names start with a capital letter will have an underscore prepended, for compatibility with Elixir syntax.</p>
+
+<p><code>app/include/app_header.hrl</code>:</p>
+
+<div class="highlight"><pre><code class="erlang"><span class="p">-</span><span class="ni">define</span><span class="p">(</span><span class="no">CONSTANT_FROM_APP</span><span class="p">,</span><span class="mi">5</span><span class="p">)</span>
+</code></pre></div>
+
+<p><code>lib/mymodule.ex</code>:</p>
+
+<div class="highlight"><pre><code class="elixir"><span class="k">defmodule</span> <span class="no">MyModule</span>
+  <span class="kn">require</span> <span class="no">Quaff</span><span class="o">.</span><span class="no">Constants</span>
+  <span class="no">Quaff</span><span class="o">.</span><span class="no">Constants</span><span class="o">.</span><span class="n">include_lib</span><span class="p">(</span><span class="s2">&quot;app/include/app_header.hrl&quot;</span><span class="p">)</span>
+
+  <span class="k">def</span> <span class="n">myfunc</span><span class="p">()</span> <span class="k">do</span>
+<span class="k">    </span><span class="nv">@_CONSTANT_FROM_APP</span> <span class="o">+</span> <span class="m">10</span>
+  <span class="k">end</span>
+<span class="k">end</span>
+</code></pre></div>
+
+<h2>Quaff.Debug</h2>
+
+<p>The Debug module provides a simple helper interface for running Elixir code in the erlang graphical debugger, using the technique I described in <a href="http://qhool.github.io/elixir/2014/02/06/elixir-debug.html">this posting</a>.</p>
+
+<div class="highlight"><pre><code class="elixir"><span class="no">Interactive</span> <span class="no">Elixir</span> <span class="p">(</span><span class="m">0.12</span><span class="o">.</span><span class="m">2</span><span class="p">)</span> <span class="o">-</span> <span class="n">press</span> <span class="no">Ctrl</span><span class="o">+</span><span class="no">C</span> <span class="n">to</span> <span class="k">exit</span> <span class="p">(</span><span class="n">type</span> <span class="n">h</span><span class="p">()</span> <span class="no">ENTER</span> <span class="n">for</span> <span class="n">help</span><span class="p">)</span>
+<span class="n">iex</span><span class="p">(</span><span class="m">1</span><span class="p">)</span><span class="o">&gt;</span>  <span class="no">Quaff</span><span class="o">.</span><span class="no">Debug</span><span class="o">.</span><span class="n">start</span><span class="p">()</span> <span class="c1">#start the graphical debugger</span>
+<span class="p">{</span><span class="ss">:ok</span><span class="p">,</span> <span class="c1">#PID&lt;0.59.0&gt;}</span>
+<span class="n">iex</span><span class="p">(</span><span class="m">2</span><span class="p">)</span><span class="o">&gt;</span>  <span class="no">Quaff</span><span class="o">.</span><span class="no">Debug</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="s2">&quot;./lib/mymodule.ex&quot;</span><span class="p">)</span> <span class="c1">#load all modules in source file</span>
+<span class="n">lib</span><span class="o">/</span><span class="n">mymodule</span><span class="o">.</span><span class="ss">ex:</span><span class="m">1</span><span class="p">:</span> <span class="n">redefining</span> <span class="n">module</span> <span class="no">My</span><span class="o">.</span><span class="no">Module</span>
+<span class="n">lib</span><span class="o">/</span><span class="n">mymodule</span><span class="o">.</span><span class="ss">ex:</span><span class="m">212</span><span class="p">:</span> <span class="n">redefining</span> <span class="n">module</span> <span class="no">My</span><span class="o">.</span><span class="no">OtherModule</span>
+<span class="p">[</span><span class="ss">module:</span> <span class="no">My</span><span class="o">.</span><span class="no">Module</span><span class="p">,</span> <span class="ss">module:</span> <span class="no">My</span><span class="o">.</span><span class="no">OtherModule</span><span class="p">]</span>
+<span class="n">iex</span><span class="p">(</span><span class="m">3</span><span class="p">)</span><span class="o">&gt;</span>  <span class="no">Quaff</span><span class="o">.</span><span class="no">Debug</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="no">Yet</span><span class="o">.</span><span class="no">AnotherModule</span><span class="p">)</span> <span class="c1">#load a module by name</span>
+<span class="p">{</span><span class="ss">:module</span><span class="p">,</span> <span class="no">Yet</span><span class="o">.</span><span class="no">AnotherModule</span><span class="p">}</span>
+</code></pre></div>
+
+<p>Also provided is <code>nload(module)</code> (equivalent to <code>load(module, all_nodes: true)</code>), which debugs the module[s] on all known nodes.</p>
+
+</div>
+
+
+          <div class="footer">
+            <div class="contact">
+              <p>
+                Josh Burroughs<br />
+                <a href="https://github.com/qhool">github.com/qhool</a><br />
+              </p>
+            </div>
+            <div class="contact">
+              <p>
+                
+<div class="highlight"><pre><code class="haskell"><span class="nf">foldl1</span> <span class="p">(</span><span class="o">++</span><span class="p">)</span> <span class="p">[</span> <span class="n">a</span><span class="o">++</span><span class="n">b</span> <span class="o">|</span> <span class="p">(</span><span class="n">a</span><span class="p">,</span><span class="n">b</span><span class="p">)</span> <span class="ow">&lt;-</span> <span class="p">(</span><span class="n">zip</span> <span class="p">[</span><span class="s">&quot;josh&quot;</span><span class="p">,</span><span class="s">&quot;qhool&quot;</span><span class="p">,</span><span class="s">&quot;&quot;</span><span class="p">]</span> <span class="p">[</span><span class="s">&quot;@&quot;</span><span class="p">,</span><span class="s">&quot;.&quot;</span><span class="p">,</span><span class="s">&quot;com&quot;</span><span class="p">])</span> <span class="p">]</span>
+</code></pre></div>
+
+              </p>
+            </div>
+          </div>
+        </div>
+
+    </body>
+</html>
